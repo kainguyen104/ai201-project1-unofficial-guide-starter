@@ -11,6 +11,8 @@
 
 <!-- What domain did you choose? Why is this knowledge valuable and hard to find through official channels? -->
 
+My domain is unofficial student knowledge about Furman dining and campus food options. This knowledge is valuable because official Furman dining pages explain meal plans, menus, dining locations, and general services, but they do not fully show what students actually experience day to day, such as convenience, wait times, food quality, vegetarian or gluten-free options, and which places students prefer when they are busy. This guide will help students ask practical questions about eating on campus and receive grounded answers from collected dining-related documents, student-facing sources, and student comments.
+
 ---
 
 ## Documents
@@ -20,16 +22,16 @@
 
 | # | Source | Description | URL or location |
 |---|--------|-------------|-----------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
-| 6 | | | |
-| 7 | | | |
-| 8 | | | |
-| 9 | | | |
-| 10 | | | |
+| 1 | Furman Dining official page | Official overview of Furman dining services, meal plan information, and dining resources. | https://www.furman.edu/dining/ |
+| 2 | Daniel Dining Hall Virtual Tour | Official Furman page describing Daniel Dining Hall, also called the DH, including made-from-scratch food and vegan, vegetarian, and gluten-free options. | https://www.furman.edu/virtual-campus-tour/daniel-dining-hall/ |
+| 3 | Dining at Furman / Enrollment Services | Official page explaining meal plan portal information, meal plan changes, food points, and board swipe details. | https://www.furman.edu/enrollment-services/enrollment-services/dining-at-furman/ |
+| 4 | Furman Dining News | Official page for dining events, dining calendar information, and campus dining updates. | https://www.furman.edu/dining/dining-news/ |
+| 5 | The Beauty of Dining at Furman | Student-facing admissions blog post describing the dining hall, PDen, Paddock, meal swipes, food points, and student dining experience. | https://www.furman.edu/admissions-aid/admission-blog/the-beauty-of-dining-at-furman/ |
+| 6 | Food at Furman During a Pandemic | Article from The Paladin discussing student experiences with Furman dining, including vegetarian and vegan options during the pandemic. | https://thepaladin.news/12892/arts-culture/food-at-furman-during-a-pandemic/ |
+| 7 | Furman Dining Instagram | Social media source showing current dining options, dining events, and student-facing food updates from Furman Dining. | https://www.instagram.com/furman_dining/ |
+| 8 | Furman Dining Instagram Reel | Social media post mentioning examples of campus dining options such as Indian tandoor, Mediterranean station, salad bars, wok grill, sushi, and noodle options. | https://www.instagram.com/reel/DSAwTE6kc6Y/ |
+| 9 | Food allergy and accommodation information | Bon Appetit/Furman-related source with information about food allergy and celiac disease resources and accommodation contacts. | https://furman.cafebonappetit.com/mail-templates/2790/ |
+| 10 | Student survey/interview notes | Short notes from 3–5 Furman students about dining convenience, wait times, food quality, healthy options, and first-year advice. | Local file: data/student_survey_notes.txt |
 
 ---
 
@@ -40,11 +42,11 @@
      numbers fit the structure of your documents.
      A review-heavy corpus warrants different chunking than a long FAQ. -->
 
-**Chunk size:**
+**Chunk size:** 600–900 characters per chunk
 
-**Overlap:**
+**Overlap:** 100–150 characters of overlap between chunks
 
-**Reasoning:**
+**Reasoning:** My sources include official dining pages, student-facing articles, and short student survey notes. I chose 600–900 characters because this size is long enough to keep one complete idea together, such as a student comment about wait times or a description of dining options, but short enough to avoid mixing too many unrelated topics. The overlap helps prevent important information from being lost when an idea continues into the next chunk.
 
 ---
 
@@ -56,11 +58,14 @@
      would you weigh in choosing a different embedding model — context length, multilingual
      support, accuracy on domain-specific text, latency? -->
 
-**Embedding model:**
+**Embedding model:** `sentence-transformers/all-MiniLM-L6-v2`
 
-**Top-k:**
+**Top-k:** 5 chunks per query
 
-**Production tradeoff reflection:**
+**Production tradeoff reflection:** 
+I chose this embedding model because it is free, local, and recommended for the project. Retrieving 5 chunks should give the LLM enough context without adding too much unrelated information. For a real system, I would consider accuracy, speed, cost, context length, and how well the model handles informal student language.
+
+If this system were deployed for real users, I would consider several tradeoffs when choosing an embedding model. A stronger embedding model might improve retrieval accuracy, especially for informal student language, slang, or short comments, but it could be slower or more expensive. I would also consider context length, multilingual support, latency, and whether the model works well with campus-specific terms such as “DH,” “PDen,” “food points,” and “meal swipes.”
 
 ---
 
@@ -73,11 +78,11 @@
 
 | # | Question | Expected answer |
 |---|----------|-----------------|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
+| 1 | What do students say about the best place to eat when they are in a hurry? | The system should answer that students often prefer the fastest or closest option when they have limited time, and it should mention that Daniel Dining Hall may not always be ideal during crowded lunch periods. The answer should cite student survey/interview notes or another relevant source. |
+| 2 | What dining option seems most associated with wait time or crowding complaints? | The system should identify Daniel Dining Hall or popular meal times as being associated with crowding and longer lines, based on student comments. It should explain that the issue is especially noticeable during lunch or busy periods. |
+| 3 | What vegetarian, vegan, or gluten-free options are mentioned in the sources? | The system should mention that Daniel Dining Hall provides vegan, vegetarian, and gluten-free options if the official dining hall source is retrieved. It may also mention that students say vegetarian options exist but could have more variety. |
+| 4 | What do students say about the overall food quality at Furman? | The system should summarize that students see Furman dining as generally useful and acceptable for everyday meals, but food quality can vary by day, station, and menu. It should not claim that every meal is excellent. |
+| 5 | What should a first-year student know about Furman dining? | The system should say that Daniel Dining Hall is a useful default option because it is predictable and easy to use, but first-year students should learn busy times, check menus, and try different dining options during the first few weeks. |
 
 ---
 
@@ -87,10 +92,11 @@
      Consider: noisy or inconsistent documents, missing source attribution, off-topic
      retrieval, chunks that split key information across boundaries. -->
 
-1.
+1. Some sources may be more official than unofficial. Official Furman pages describe dining services in a polished way, but they may not fully reflect student experience. To balance this, I need to include student survey/interview notes, public comments, and student-facing sources so the system can answer practical questions instead of only repeating official descriptions.
 
-2.
+2. Retrieval may fail if students use different words from the query. For example, a user might ask about “quick food between classes,” while a source might use words like “convenient,” “fast,” “closest,” or “busy.” Because semantic search is not perfect, the system may retrieve a related but incomplete chunk. I will test retrieval with my evaluation questions and inspect the returned chunks before connecting generation.
 
+3. Some important information may be split across chunk boundaries. For example, one paragraph might describe vegetarian options while the next paragraph explains student opinions about variety. The overlap should reduce this problem, but I will still inspect sample chunks before embedding.
 ---
 
 ## Architecture
@@ -101,7 +107,14 @@
      You can use ASCII art, a Mermaid diagram, or embed a sketch as an image.
      You'll use this diagram as context when prompting AI tools to implement each stage. -->
 
----
+Document Ingestion (TXT files)
+→ Cleaning (remove HTML and extra whitespace)
+→ Chunking (600–900 characters with overlap)
+→ Embedding (all-MiniLM-L6-v2)
+→ Vector Store (ChromaDB with metadata)
+→ Retrieval (top 5 chunks)
+→ Generation (Groq LLM)
+→ Grounded Answer with sources
 
 ## AI Tool Plan
 

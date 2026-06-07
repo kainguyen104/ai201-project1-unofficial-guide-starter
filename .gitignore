@@ -16,5 +16,8 @@ env/
 chroma_db/
 chroma/
 
+# Ingestion output (regenerable: chunks.json + raw text copies)
+output/
+
 # macOS
 .DS_Store

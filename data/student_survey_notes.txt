@@ -1,18 +1,16 @@
 Source: Student Survey/Interview Notes on Furman Dining
+URL: Local file: data/student_survey_notes.txt
 Date collected: June 2026
 Description: Informal notes from Furman students about campus dining experiences, including convenience, wait times, food quality, dietary options, and first-year advice.
 
-Student 1:
-I usually go to Daniel Dining Hall when I have enough time because it has the most variety. However, during lunch, it can feel crowded, especially when many students come between classes. If I am in a hurry, I usually prefer a quicker option instead of sitting down for a full meal.
+These informal student survey and interview notes describe Furman dining from a student perspective. The notes focus on Daniel Dining Hall, convenience, crowded lunch periods, quick food options, food quality, dietary options, and advice for first-year students.
 
-Student 2:
-The dining hall is convenient because it is central and easy for first-year students to use. The food quality depends on the day. Some stations are good, but sometimes the options feel repetitive. I think students should check the menu before going if they care about specific food choices.
+Student 1 says they usually go to Daniel Dining Hall when they have enough time because it has the most variety. However, they say the dining hall can feel crowded during lunch, especially when many students come between classes. When they are in a hurry, they usually prefer a quicker option instead of sitting down for a full meal.
 
-Student 3:
-For quick food between classes, convenience matters more than variety. I usually avoid places with long lines when I only have 15 or 20 minutes. The best option depends on where my next class is, but I usually choose whatever is closest and fastest.
+Student 2 says the dining hall is convenient because it is central and easy for first-year students to use. They say the food quality depends on the day. Some stations are good, but sometimes the options feel repetitive. They recommend checking the menu before going if students care about specific food choices.
 
-Student 4:
-There are vegetarian and healthier options, but they are not always equally exciting. I like that there are usually salad or vegetable options, but I wish the vegetarian meals had more variety. Students with dietary needs should probably check the menu or ask dining staff.
+Student 3 says that for quick food between classes, convenience matters more than variety. They usually avoid places with long lines when they only have 15 or 20 minutes. The best option depends on where their next class is, but they usually choose whatever is closest and fastest.
 
-Student 5:
-As a first-year student, I think the dining hall is useful because it is predictable and easy to understand. It is a good default place to eat, especially at the beginning of the semester. However, students should learn the busy times quickly because lunch can get crowded.
+Student 4 says there are vegetarian and healthier options, but they are not always equally exciting. They like that there are usually salad or vegetable options, but they wish the vegetarian meals had more variety. They recommend that students with dietary needs check the menu or ask dining staff.
+
+Student 5 says that for a first-year student, the dining hall is useful because it is predictable and easy to understand. It is a good default place to eat, especially at the beginning of the semester. However, students should learn the busy times quickly because lunch can get crowded.

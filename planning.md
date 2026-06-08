@@ -129,6 +129,7 @@ Document Ingestion (TXT files)
      with my specified chunk size and overlap" is a plan. -->
 
 **Milestone 3 — Ingestion and chunking:**
+I will use Claude to help write the ingestion and chunking script. I will give Claude my Documents section, Chunking Strategy section, and Architecture diagram from this planning.md. I will also tell Claude that my documents are local `.txt` files stored in the `data/` folder. I expect Claude to produce a Python script that loads all documents, preserves the raw text, cleans the text, splits the documents into 600–900 character chunks with 100–150 character overlap, saves the chunks with source metadata, prints one cleaned document, prints 5 representative chunks, and prints the total number of chunks. I will verify the output by checking that all 10 documents load correctly, the cleaned text does not contain navigation or footer text, and the sample chunks are readable and self-contained.
 
 **Milestone 4 — Embedding and retrieval:**
 

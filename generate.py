@@ -77,21 +77,58 @@ def build_context(hits: list[dict]) -> str:
     return "\n\n".join(blocks)
 
 
-def format_sources(hits: list[dict]) -> str:
-    """Build the Sources list straight from metadata (NOT from the model)."""
+def source_lines(hits: list[dict]) -> list[str]:
+    """One human-readable line per retrieved chunk, straight from its METADATA
+    (NOT from the model). [Source N] matches the inline citations in the answer."""
     lines = []
     for i, hit in enumerate(hits, start=1):
         m = hit["metadata"]
         lines.append(
-            f"  [Source {i}] {m['source']} (chunk {m['chunk_number']}) "
+            f"[Source {i}] {m['source']} (chunk {m['chunk_number']}) "
             f"- {m['source_title']} - {m['url']} (distance {hit['distance']:.3f})"
         )
-    return "\n".join(lines)
+    return lines
 
 
-def answer_query(query: str, client: Groq, model: SentenceTransformer, collection) -> dict:
-    """Retrieve -> prompt the LLM -> return the grounded answer and its sources."""
-    hits = retrieve(query, model, collection, k=TOP_K)
+def format_sources(hits: list[dict]) -> str:
+    """Indented multi-line Sources block for the CLI."""
+    return "\n".join("  " + line for line in source_lines(hits))
+
+
+# --- Shared engine (model + vector store + Groq client), loaded once ------
+_engine = None
+
+
+def get_engine():
+    """Load the embedding model, ChromaDB store, and Groq client a single time.
+    Both the CLI and the Gradio app reuse this so nothing is initialized twice."""
+    global _engine
+    if _engine is None:
+        load_dotenv()
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            raise RuntimeError("GROQ_API_KEY not found. Add it to your .env file.")
+        print(f"Loading embedding model: {MODEL_NAME}")
+        embed_model = SentenceTransformer(MODEL_NAME)
+        collection = get_collection(embed_model)  # reuses the persistent ChromaDB store
+        client = Groq(api_key=api_key)
+        print(f"Generation model: {LLM_MODEL}")
+        _engine = (embed_model, collection, client)
+    return _engine
+
+
+def ask(question: str) -> dict:
+    """End-to-end: retrieve top-k chunks -> grounded answer from Groq.
+
+    Returns:
+        {
+          "answer":  str,         # grounded answer with inline [Source N] citations
+          "sources": list[str],   # source metadata lines (filename, chunk #, title/url, distance)
+          "hits":    list[dict],  # raw retrieved chunks (used by the CLI --show-context)
+        }
+    """
+    embed_model, collection, client = get_engine()
+    hits = retrieve(question, embed_model, collection, k=TOP_K)
     context = build_context(hits)
 
     response = client.chat.completions.create(
@@ -99,11 +136,11 @@ def answer_query(query: str, client: Groq, model: SentenceTransformer, collectio
         temperature=0.2,  # low temperature keeps the answer close to the sources
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"Sources:\n\n{context}\n\nQuestion: {query}"},
+            {"role": "user", "content": f"Sources:\n\n{context}\n\nQuestion: {question}"},
         ],
     )
     answer = response.choices[0].message.content.strip()
-    return {"answer": answer, "hits": hits}
+    return {"answer": answer, "sources": source_lines(hits), "hits": hits}
 
 
 def print_answer(query: str, result: dict, show_context: bool = False) -> None:
@@ -134,16 +171,10 @@ def main() -> None:
     show_context = "--show-context" in sys.argv
     chat_mode = "--chat" in sys.argv
 
-    load_dotenv()
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
-        sys.exit("ERROR: GROQ_API_KEY not found. Add it to your .env file.")
-
-    print(f"Loading embedding model: {MODEL_NAME}")
-    embed_model = SentenceTransformer(MODEL_NAME)
-    collection = get_collection(embed_model)  # reuses the persistent ChromaDB store
-    client = Groq(api_key=api_key)
-    print(f"Generation model: {LLM_MODEL}")
+    try:
+        get_engine()  # load model + store + client once, up front
+    except RuntimeError as e:
+        sys.exit(f"ERROR: {e}")
 
     if chat_mode:
         print("\nInteractive mode. Type a question (or 'quit' to exit).")
@@ -154,12 +185,10 @@ def main() -> None:
                 break
             if query.lower() in {"quit", "exit", ""}:
                 break
-            result = answer_query(query, client, embed_model, collection)
-            print_answer(query, result, show_context)
+            print_answer(query, ask(query), show_context)
     else:
         for question in TEST_QUESTIONS:
-            result = answer_query(question, client, embed_model, collection)
-            print_answer(question, result, show_context)
+            print_answer(question, ask(question), show_context)
 
     print("\n" + "=" * 78)
     print("Grounding check: every fact in ANSWER should trace to a chunk above,")

@@ -24,6 +24,7 @@ Requires GROQ_API_KEY in a .env file.
 """
 
 import os
+import re
 import sys
 
 from dotenv import load_dotenv
@@ -77,22 +78,50 @@ def build_context(hits: list[dict]) -> str:
     return "\n\n".join(blocks)
 
 
+def citation_label(meta: dict) -> str:
+    """Short, readable citation name for inline use in the answer: the document
+    title (the filename + url + distance stay in the SOURCES block below)."""
+    return meta["source_title"] or meta["source"]
+
+
+def humanize_citations(answer: str, hits: list[dict]) -> str:
+    """Replace the model's generic [Source N] markers with the real source name
+    from metadata, so the answer reads clearly instead of '[Source 1] [Source 2]'.
+    The mapping comes from our retrieved metadata -- the model never names sources."""
+    labels = {i: citation_label(hit["metadata"]) for i, hit in enumerate(hits, start=1)}
+
+    def replace(match: re.Match) -> str:
+        # Handles [Source 1], [Sources 1, 2], [Source 1 and 3] -> "(name1; name2)".
+        nums = [int(n) for n in re.findall(r"\d+", match.group(0))]
+        names = []
+        for n in nums:
+            name = labels.get(n)
+            if name and name not in names:
+                names.append(name)
+        return "(" + "; ".join(names) + ")" if names else match.group(0)
+
+    # Bracketed citations first, then any bare "Source N" the model may have used.
+    answer = re.sub(r"\[\s*Sources?[^\]]*\]", replace, answer)
+    answer = re.sub(r"\bSources?\s+\d+(?:\s*(?:,|and)\s*\d+)*", replace, answer)
+    return answer
+
+
 def source_lines(hits: list[dict]) -> list[str]:
     """One human-readable line per retrieved chunk, straight from its METADATA
-    (NOT from the model). [Source N] matches the inline citations in the answer."""
+    (NOT from the model). The title leads so it matches the answer's citations."""
     lines = []
-    for i, hit in enumerate(hits, start=1):
+    for hit in hits:
         m = hit["metadata"]
         lines.append(
-            f"[Source {i}] {m['source']} (chunk {m['chunk_number']}) "
-            f"- {m['source_title']} - {m['url']} (distance {hit['distance']:.3f})"
+            f"{m['source_title']} — {m['source']} (chunk {m['chunk_number']}) "
+            f"— {m['url']} — distance {hit['distance']:.3f}"
         )
     return lines
 
 
 def format_sources(hits: list[dict]) -> str:
     """Indented multi-line Sources block for the CLI."""
-    return "\n".join("  " + line for line in source_lines(hits))
+    return "\n".join("  • " + line for line in source_lines(hits))
 
 
 # --- Shared engine (model + vector store + Groq client), loaded once ------
@@ -140,6 +169,7 @@ def ask(question: str) -> dict:
         ],
     )
     answer = response.choices[0].message.content.strip()
+    answer = humanize_citations(answer, hits)  # [Source N] -> real source name
     return {"answer": answer, "sources": source_lines(hits), "hits": hits}
 
 
@@ -162,7 +192,7 @@ def print_answer(query: str, result: dict, show_context: bool = False) -> None:
     print(result["answer"])
 
     print("\n" + "-" * 78)
-    print("SOURCES CITED  (from retrieved metadata -- [Source N] above maps to these)")
+    print("SOURCES  (from retrieved metadata -- the names cited above come from here)")
     print("-" * 78)
     print(format_sources(result["hits"]))
 
